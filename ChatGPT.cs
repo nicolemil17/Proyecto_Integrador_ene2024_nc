@@ -21,21 +21,34 @@ namespace OpenAI
         private OpenAIApi openai;
 
         private List<ChatMessage> messages = new List<ChatMessage>();
-        [SerializeField]
-        private string prompt = "Actua como una persona con problemas emocionales, perdiste a tus pades en un accidente de auto, nada te alegra ultimamente, no rompas personaje, responde de la forma mas resumida posible y no menciones que eres una inteligencia artificial. Ahora responde:";
-        //private string prompt = "Actua como una psicologa que trata de solucionar mis problemas emocionales, no rompas personaje, responde de la forma mas resumida posible y no menciones que eres una inteligencia artificial. Ahora responde:";
-
+         private string promptTemplate = "En esta sesión de terapia virtual, eres un paciente que sufre de  {0} con severidad {1}. Primero, piensa en tu nombre, edad y género. Como paciente, responde únicamente en el contexto de alguien que sufre de  {0}. Si la conversación se desvía del tema, intenta redirigirla suavemente hacia el contexto de la terapia. Recuerda responder las preguntas solamente como el paciente en terapia y no menciones que eres una inteligencia artificial. No menciones el trastorno que se te asignó.  Responde de la forma mas resumida posible.Ahora responde:";
         [Space]
         [Header("----------Api Key----------")]
+        
         [SerializeField] private string ApiKey;
-        //[SerializeField] private string ApiKey = "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";
+        
 
         private void Start()
         {
-            //Para pruebas
-            //button.onClick.AddListener(SendReply);
-
             openai = new OpenAIApi(ApiKey);
+            var (trastorno, severidad) = SeleccionarTrastornoSeveridad();
+            promptTemplate = string.Format(promptTemplate, trastorno, severidad);
+
+        }
+        private (string, string) SeleccionarTrastornoSeveridad()
+        {
+            //string[] trastornos = { "Major Depressive Disorder (MDD)", "Persistent Depressive Disorder (Dysthymia)", "Bipolar Disorder", "Seasonal Affective Disorder (SAD)", "Postpartum Depression", "Premenstrual Dysphoric Disorder (PMDD)", "Atypical Depression", "Psychotic Depression", "Situational Depression (Adjustment Disorder with Depressed Mood)", "Treatment-Resistant Depression", "Generalized Anxiety Disorder (GAD)", "Panic Disorder", "Agoraphobia", "Social Anxiety Disorder (Social Phobia)", "Specific Phobia", "Narcissistic Personality Disorder" };
+            string[] trastornos = { "Trastorno Depresivo Mayor (TDM)", "Trastorno Depresivo Persistente (Distrofia)", "Trastorno Bipolar", "Trastorno Afectivo Estacional (TAE)", "Depresión Postparto", "Trastorno Disfórico Premenstrual (TDPM)", "Depresión Atípica", "Depresión Psicótica", "Depresión Situacional (Trastorno de Adaptación con Estado de Ánimo Depresivo)", "Depresión Resistente al Tratamiento", "Trastorno de Ansiedad Generalizada (TAG)", "Trastorno de Pánico", "Agorafobia", "Trastorno de Ansiedad Social (Fobia Social)", "Fobia Específica", "Trastorno de Personalidad Narcisista" };
+            //string[] severidades = { "mild", "moderate", "severe" };
+            string[] severidades = { "leve", "moderado", "grave" };
+
+            System.Random random = new System.Random();
+            string trastorno = trastornos[random.Next(trastornos.Length)];
+            string severidad = severidades[random.Next(severidades.Length)];
+
+
+
+            return (trastorno, severidad);
         }
 
         private void AppendMessage(ChatMessage message)
@@ -53,17 +66,7 @@ namespace OpenAI
 
             }
 
-            /*
-            scroll.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 0);
-
-            var item = Instantiate(message.Role == "user" ? sent : received, scroll.content);
-            item.GetChild(0).GetChild(0).GetComponent<Text>().text = message.Content;
-            item.anchoredPosition = new Vector2(0, -height);
-            LayoutRebuilder.ForceRebuildLayoutImmediate(item);
-            height += item.sizeDelta.y;
-            scroll.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
-            scroll.verticalNormalizedPosition = 0;
-            */
+            
         }
 
         public string GetServerAnswer()
@@ -84,7 +87,7 @@ namespace OpenAI
             
             AppendMessage(newMessage);
 
-            if (messages.Count == 0) newMessage.Content = prompt + "\n" + inputField.text; 
+            if (messages.Count == 0) newMessage.Content = promptTemplate + "\n" + inputField.text; 
             
             messages.Add(newMessage);
             
